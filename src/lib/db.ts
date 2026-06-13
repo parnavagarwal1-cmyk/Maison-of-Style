@@ -193,16 +193,21 @@ export async function addProduct(
   }
 
   // Local JSON write
-  ensureDbExists();
-  const products = await getProducts();
-  const newProduct: Product = {
-    ...productData,
-    id: String(Date.now() + Math.floor(Math.random() * 1000)),
-    createdAt: Date.now(),
-  };
-  products.push(newProduct);
-  await fs.promises.writeFile(DB_FILE, JSON.stringify(products, null, 2), "utf-8");
-  return newProduct;
+  try {
+    ensureDbExists();
+    const products = await getProducts();
+    const newProduct: Product = {
+      ...productData,
+      id: String(Date.now() + Math.floor(Math.random() * 1000)),
+      createdAt: Date.now(),
+    };
+    products.push(newProduct);
+    await fs.promises.writeFile(DB_FILE, JSON.stringify(products, null, 2), "utf-8");
+    return newProduct;
+  } catch (err) {
+    console.error("Local JSON addProduct error (expected on read-only systems like Vercel without Supabase):", err);
+    throw new Error("Local database write failed. If deployed on Vercel, please configure SUPABASE_URL and SUPABASE_KEY environment variables.");
+  }
 }
 
 export async function deleteProduct(id: string): Promise<boolean> {
@@ -218,13 +223,18 @@ export async function deleteProduct(id: string): Promise<boolean> {
   }
 
   // Local JSON delete
-  ensureDbExists();
-  const products = await getProducts();
-  const index = products.findIndex((p) => p.id === id);
-  if (index === -1) return false;
-  products.splice(index, 1);
-  await fs.promises.writeFile(DB_FILE, JSON.stringify(products, null, 2), "utf-8");
-  return true;
+  try {
+    ensureDbExists();
+    const products = await getProducts();
+    const index = products.findIndex((p) => p.id === id);
+    if (index === -1) return false;
+    products.splice(index, 1);
+    await fs.promises.writeFile(DB_FILE, JSON.stringify(products, null, 2), "utf-8");
+    return true;
+  } catch (err) {
+    console.error("Local JSON deleteProduct error (expected on read-only systems like Vercel without Supabase):", err);
+    throw new Error("Local database delete failed. If deployed on Vercel, please configure SUPABASE_URL and SUPABASE_KEY environment variables.");
+  }
 }
 
 export async function getStats() {
