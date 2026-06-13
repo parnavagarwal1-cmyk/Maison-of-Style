@@ -35,10 +35,16 @@ export default function AdminDashboard({
   const [affiliateLink, setAffiliateLink] = useState("");
   const [newArrival, setNewArrival] = useState(false);
   
+  // Edit mode state
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+  // Custom Delete Confirm Modal State
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleLogout = async () => {
     try {
@@ -49,40 +55,100 @@ export default function AdminDashboard({
     }
   };
 
-  const handleAddProduct = async (e: React.FormEvent) => {
+  // Populate form with product details to edit
+  const startEdit = (product: Product) => {
+    setFormError("");
+    setFormSuccess("");
+    setEditingProduct(product);
+    setName(product.name);
+    setCategory(product.category);
+    setImage(product.image);
+    setAffiliateLink(product.affiliateLink);
+    setNewArrival(product.newArrival);
+    
+    // Scroll to the form (useful on mobile viewports)
+    const formPanel = document.getElementById("admin-form");
+    if (formPanel) {
+      formPanel.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingProduct(null);
+    setName("");
+    setCategory("Men-Shirts");
+    setImage("");
+    setAffiliateLink("");
+    setNewArrival(false);
+    setFormError("");
+    setFormSuccess("");
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
     setFormSuccess("");
     setSubmitting(true);
 
     try {
-      const res = await fetch("/api/admin/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          category,
-          image,
-          affiliateLink,
-          newArrival,
-        }),
-      });
+      if (editingProduct) {
+        // Edit Mode: PUT Request
+        const res = await fetch("/api/admin/products", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: editingProduct.id,
+            name,
+            category,
+            image,
+            affiliateLink,
+            newArrival,
+          }),
+        });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to add product");
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to update product");
+        }
+
+        setFormSuccess("Product updated successfully.");
+        
+        // Update in list state
+        setProducts(
+          products.map((p) => (p.id === editingProduct.id ? data.product : p))
+        );
+        setStats(data.stats);
+        cancelEdit();
+      } else {
+        // Create Mode: POST Request
+        const res = await fetch("/api/admin/products", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            category,
+            image,
+            affiliateLink,
+            newArrival,
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to add product");
+        }
+
+        setFormSuccess("Product added successfully.");
+        // Prepend to state list
+        setProducts([data.product, ...products]);
+        setStats(data.stats);
+
+        // Reset form
+        setName("");
+        setImage("");
+        setAffiliateLink("");
+        setNewArrival(false);
       }
-
-      setFormSuccess("Product added successfully.");
-      // Prepend to state
-      setProducts([data.product, ...products]);
-      setStats(data.stats);
-
-      // Reset form
-      setName("");
-      setImage("");
-      setAffiliateLink("");
-      setNewArrival(false);
     } catch (err: any) {
       setFormError(err.message || "Something went wrong");
     } finally {
@@ -90,12 +156,13 @@ export default function AdminDashboard({
     }
   };
 
-  const handleDeleteProduct = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this product?")) return;
-    setDeletingId(id);
+  const handleDeleteProduct = async () => {
+    if (!productToDelete) return;
+    const targetId = productToDelete.id;
+    setDeletingId(targetId);
 
     try {
-      const res = await fetch(`/api/admin/products?id=${id}`, {
+      const res = await fetch(`/api/admin/products?id=${targetId}`, {
         method: "DELETE",
       });
 
@@ -104,8 +171,9 @@ export default function AdminDashboard({
         throw new Error(data.error || "Failed to delete product");
       }
 
-      setProducts(products.filter((p) => p.id !== id));
+      setProducts(products.filter((p) => p.id !== targetId));
       setStats(data.stats);
+      setProductToDelete(null); // Close modal
     } catch (err: any) {
       alert(err.message || "Could not delete product");
     } finally {
@@ -147,10 +215,12 @@ export default function AdminDashboard({
 
         {/* Form and List Grid */}
         <div className="admin-split">
-          {/* Add Product Form */}
-          <div className="admin-form-panel">
-            <h2 className="admin-panel-title">Add Curation</h2>
-            <form onSubmit={handleAddProduct}>
+          {/* Add / Edit Product Form */}
+          <div className="admin-form-panel" id="admin-form">
+            <h2 className="admin-panel-title">
+              {editingProduct ? "Edit Curation" : "Add Curation"}
+            </h2>
+            <form onSubmit={handleFormSubmit}>
               <div className="form-group">
                 <label className="form-label" htmlFor="prod-name">
                   Product Name
@@ -240,14 +310,27 @@ export default function AdminDashboard({
               {formError && <p className="form-error" style={{ marginBottom: "16px" }}>{formError}</p>}
               {formSuccess && <p style={{ color: "#ffffff", fontSize: "12px", marginBottom: "16px" }}>{formSuccess}</p>}
 
-              <button
-                type="submit"
-                className="btn-editorial"
-                style={{ width: "100%" }}
-                disabled={submitting}
-              >
-                {submitting ? "Adding..." : "Add Product"}
-              </button>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <button
+                  type="submit"
+                  className="btn-editorial"
+                  style={{ width: "100%" }}
+                  disabled={submitting}
+                >
+                  {submitting ? (editingProduct ? "Updating..." : "Adding...") : (editingProduct ? "Update Product" : "Add Product")}
+                </button>
+                {editingProduct && (
+                  <button
+                    type="button"
+                    onClick={cancelEdit}
+                    className="btn-editorial-outline"
+                    style={{ width: "100%", padding: "12px 0", fontSize: "11px" }}
+                    disabled={submitting}
+                  >
+                    Cancel Edit
+                  </button>
+                )}
+              </div>
             </form>
           </div>
 
@@ -304,24 +387,27 @@ export default function AdminDashboard({
                         {product.category.replace("-", " ")}
                       </td>
                       <td>
-                        <a
-                          href={product.affiliateLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="link-truncated"
-                          title={product.affiliateLink}
-                        >
+                        <span className="link-truncated" title={product.affiliateLink}>
                           {product.affiliateLink}
-                        </a>
+                        </span>
                       </td>
                       <td>
-                        <button
-                          onClick={() => handleDeleteProduct(product.id)}
-                          className="delete-btn"
-                          disabled={deletingId === product.id}
-                        >
-                          {deletingId === product.id ? "..." : "Delete"}
-                        </button>
+                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                          <button
+                            onClick={() => startEdit(product)}
+                            className="edit-btn"
+                          >
+                            Edit
+                          </button>
+                          <span style={{ color: "var(--border-color)", fontSize: "11px" }}>|</span>
+                          <button
+                            onClick={() => setProductToDelete(product)}
+                            className="delete-btn"
+                            disabled={deletingId === product.id}
+                          >
+                            {deletingId === product.id ? "..." : "Delete"}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -331,6 +417,43 @@ export default function AdminDashboard({
           </div>
         </div>
       </div>
+
+      {/* Custom Delete Confirmation Modal */}
+      {productToDelete && (
+        <div className="modal-backdrop" onClick={() => setProductToDelete(null)}>
+          <div 
+            className="modal-content" 
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "420px", padding: "32px", textAlign: "center" }}
+          >
+            <h3 className="modal-title" style={{ fontSize: "22px", marginBottom: "12px" }}>
+              Confirm Delete
+            </h3>
+            <p style={{ color: "var(--text-secondary)", fontSize: "14px", marginBottom: "32px", lineHeight: "1.5" }}>
+              Are you sure you want to delete <strong>{productToDelete.name}</strong>?<br />
+              This action cannot be undone.
+            </p>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+              <button
+                onClick={() => setProductToDelete(null)}
+                className="btn-editorial-outline"
+                style={{ padding: "12px 24px", fontSize: "11px", flex: 1 }}
+                disabled={deletingId !== null}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteProduct}
+                className="btn-editorial"
+                style={{ padding: "12px 24px", fontSize: "11px", backgroundColor: "#ff3b30", borderColor: "#ff3b30", color: "#ffffff", flex: 1 }}
+                disabled={deletingId !== null}
+              >
+                {deletingId ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -754,6 +754,23 @@ img {
   border: 1px solid var(--border-color);
 }
 
+.edit-btn {
+  color: #ffffff;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-bottom: 1px solid transparent;
+  padding-bottom: 1px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: border-color var(--transition-speed);
+}
+
+.edit-btn:hover {
+  border-color: #ffffff;
+}
+
 .delete-btn {
   color: #ff3b30;
   font-size: 12px;

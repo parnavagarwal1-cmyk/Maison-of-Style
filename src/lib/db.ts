@@ -210,6 +210,49 @@ export async function addProduct(
   }
 }
 
+export async function updateProduct(
+  id: string,
+  productData: Omit<Product, "id" | "createdAt">
+): Promise<Product | null> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const dbRow = mapProductToRow(productData);
+      const { data, error } = await supabase
+        .from("products")
+        .update(dbRow)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return mapRowToProduct(data);
+    } catch (err) {
+      console.error("Supabase updateProduct error:", err);
+      throw err;
+    }
+  }
+
+  // Local JSON update
+  try {
+    ensureDbExists();
+    const products = await getProducts();
+    const index = products.findIndex((p) => p.id === id);
+    if (index === -1) return null;
+    
+    const updatedProduct: Product = {
+      ...products[index],
+      ...productData,
+    };
+    
+    products[index] = updatedProduct;
+    await fs.promises.writeFile(DB_FILE, JSON.stringify(products, null, 2), "utf-8");
+    return updatedProduct;
+  } catch (err) {
+    console.error("Local JSON updateProduct error (expected on read-only systems like Vercel without Supabase):", err);
+    throw new Error("Local database update failed. If deployed on Vercel, please configure SUPABASE_URL and SUPABASE_KEY environment variables.");
+  }
+}
+
 export async function deleteProduct(id: string): Promise<boolean> {
   if (isSupabaseConfigured && supabase) {
     try {

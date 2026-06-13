@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAuthenticated } from "@/lib/auth";
-import { getProducts, addProduct, deleteProduct, getStats } from "@/lib/db";
+import { getProducts, addProduct, updateProduct, deleteProduct, getStats } from "@/lib/db";
 
 export async function GET() {
   const isAuth = await isAuthenticated();
@@ -47,9 +47,46 @@ export async function POST(request: Request) {
     const stats = await getStats();
 
     return NextResponse.json({ success: true, product: newProduct, stats });
-  } catch (error) {
+  } catch (error: any) {
     console.error("POST products admin API error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
+  }
+}
+
+export async function PUT(request: Request) {
+  const isAuth = await isAuthenticated();
+  if (!isAuth) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const { id, name, category, image, affiliateLink, newArrival } = await request.json();
+
+    if (!id || !name || !category || !image || !affiliateLink) {
+      return NextResponse.json(
+        { error: "Product ID, Name, Category, Image URL, and Affiliate Link are required." },
+        { status: 400 }
+      );
+    }
+
+    const updatedProduct = await updateProduct(id, {
+      name,
+      category,
+      image,
+      affiliateLink,
+      newArrival: !!newArrival,
+    });
+
+    if (!updatedProduct) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    const stats = await getStats();
+
+    return NextResponse.json({ success: true, product: updatedProduct, stats });
+  } catch (error: any) {
+    console.error("PUT products admin API error:", error);
+    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
   }
 }
 
@@ -75,8 +112,8 @@ export async function DELETE(request: Request) {
     const stats = await getStats();
 
     return NextResponse.json({ success: true, stats });
-  } catch (error) {
+  } catch (error: any) {
     console.error("DELETE products admin API error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
   }
 }
