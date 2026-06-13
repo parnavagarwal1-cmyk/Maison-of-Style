@@ -4,8 +4,10 @@ import React, { useEffect, useState } from "react";
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     // Read theme on client mount, defaulting to dark mode
     const savedTheme = localStorage.getItem("maison-theme") as "light" | "dark" | null;
     const initialTheme = savedTheme || "dark";
@@ -29,6 +31,17 @@ export default function ThemeToggle() {
       document.documentElement.classList.remove("dark-theme");
     }
   };
+
+  if (!mounted) {
+    return (
+      <button
+        className="theme-toggle-btn"
+        aria-label="Switch to light theme"
+      >
+        Light Mode
+      </button>
+    );
+  }
 
   return (
     <button
