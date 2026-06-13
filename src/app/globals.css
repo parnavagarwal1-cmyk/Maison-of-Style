@@ -996,4 +996,124 @@ img {
   border-color: var(--text-primary);
 }
 
+/* ==========================================================================
+   Mobile & Responsive Enhancements
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  /* Header adjustments for smaller screens to prevent overflow and overlapping */
+  .header-inner {
+    height: auto;
+    padding: 16px 0;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .logo {
+    font-size: 20px;
+    letter-spacing: 0.08em;
+  }
+  
+  .main-nav {
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .nav-link {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+  }
+  
+  .theme-toggle-btn {
+    padding: 6px 12px;
+    font-size: 9px;
+  }
+
+  /* Compact Pinterest Header on Mobile */
+  .pinterest-banner-wrapper {
+    height: 160px; /* Reduced height to bring content above the fold */
+  }
+  
+  .pinterest-pfp-wrapper {
+    width: 90px;
+    height: 90px;
+    margin: -45px auto 12px auto;
+    border-width: 3px;
+  }
+  
+  .pinterest-name {
+    font-size: 24px;
+  }
+  
+  .pinterest-tagline {
+    font-size: 11px;
+  }
+
+  /* Compact Category Banners on Mobile */
+  .category-block-btn {
+    padding: 90px 16px;
+  }
+  
+  .category-block-title {
+    font-size: 28px;
+  }
+
+  /* Padding adjustments */
+  .section-padding {
+    padding: 48px 0;
+  }
+  
+  .products-section-title {
+    font-size: 22px;
+    margin-bottom: 32px;
+  }
+  
+  .filter-container {
+    margin-bottom: 32px;
+    gap: 8px;
+  }
+  
+  .filter-tab {
+    padding: 8px 16px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 576px) {
+  /* Prevent large text truncation and wrapping issues on small mobile screens */
+  .product-card-name {
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  
+  .product-card-category {
+    font-size: 9px;
+  }
+  
+  .product-card-info {
+    padding: 12px 8px;
+  }
+  
+  .product-card-shop-now {
+    font-size: 9px;
+    padding: 8px 16px;
+  }
+  
+  /* Details page mobile layouts */
+  .product-detail-title {
+    font-size: 30px;
+    margin-bottom: 16px;
+  }
+  
+  .product-detail-desc {
+    font-size: 14px;
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+}
+
+
 
