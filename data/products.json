@@ -1,0 +1,74 @@
+[
+  {
+    "id": "1",
+    "name": "Classic Silk Look",
+    "category": "Women-Tops",
+    "image": "https://images.unsplash.com/photo-1574169208507-84376144848b?q=80&w=600&auto=format&fit=crop",
+    "affiliateLink": "Silk Blouse | https://rstyle.me/demo-women-tops-1\nPleated Skirt | https://rstyle.me/demo-women-skirt-1",
+    "newArrival": true,
+    "createdAt": 1776262400000
+  },
+  {
+    "id": "2",
+    "name": "Wool Blazer Look",
+    "category": "Men-Jackets",
+    "image": "https://images.unsplash.com/photo-1544923246-77307dd654cb?q=80&w=600&auto=format&fit=crop",
+    "affiliateLink": "Tailored Blazer | https://rstyle.me/demo-men-jackets-2\nWhite T-Shirt | https://rstyle.me/demo-men-tee-2\nBlack Chinos | https://rstyle.me/demo-men-pants-2",
+    "newArrival": true,
+    "createdAt": 1776262500000
+  },
+  {
+    "id": "3",
+    "name": "Linen Dress Look",
+    "category": "Women-Dresses",
+    "image": "https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=600&auto=format&fit=crop",
+    "affiliateLink": "Linen Dress | https://rstyle.me/demo-women-dresses-3\nLeather Sandals | https://rstyle.me/demo-women-sandals-3",
+    "newArrival": true,
+    "createdAt": 1776262600000
+  },
+  {
+    "id": "4",
+    "name": "Relaxed Fit Look",
+    "category": "Men-Shirts",
+    "image": "https://images.unsplash.com/photo-1621072156002-e2fcc104e76a?q=80&w=600&auto=format&fit=crop",
+    "affiliateLink": "Relaxed Shirt | https://rstyle.me/demo-men-shirts-4\nClassic Chinos | https://rstyle.me/demo-men-chinos-4",
+    "newArrival": false,
+    "createdAt": 1776262700000
+  },
+  {
+    "id": "5",
+    "name": "Pleated Trousers Look",
+    "category": "Women-Bottoms",
+    "image": "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=600&auto=format&fit=crop",
+    "affiliateLink": "Pleated Trousers | https://rstyle.me/demo-women-bottoms-5\nKnit Top | https://rstyle.me/demo-women-knit-5",
+    "newArrival": false,
+    "createdAt": 1776262800000
+  },
+  {
+    "id": "6",
+    "name": "Structured Bag",
+    "category": "Women-Accessories",
+    "image": "https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=600&auto=format&fit=crop",
+    "affiliateLink": "Minimalist Bag | https://rstyle.me/demo-women-acc-6",
+    "newArrival": true,
+    "createdAt": 1776262900000
+  },
+  {
+    "id": "7",
+    "name": "Chronograph Watch",
+    "category": "Men-Accessories",
+    "image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop",
+    "affiliateLink": "Chronograph Watch | https://rstyle.me/demo-men-acc-7",
+    "newArrival": false,
+    "createdAt": 1776263000000
+  },
+  {
+    "id": "8",
+    "name": "Chinos Look",
+    "category": "Men-Pants",
+    "image": "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=600&auto=format&fit=crop",
+    "affiliateLink": "Pleated Chinos | https://rstyle.me/demo-men-pants-8\nSuede Loafers | https://rstyle.me/demo-men-loafers-8",
+    "newArrival": false,
+    "createdAt": 1776263100000
+  }
+]
