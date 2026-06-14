@@ -157,7 +157,7 @@ export async function getProducts(): Promise<Product[]> {
       if (error) throw error;
       return (data || []).map(mapRowToProduct);
     } catch (err) {
-      console.error("Supabase getProducts error, falling back to local file:", err);
+      console.warn("Supabase getProducts error, falling back to local file:", err);
     }
   }
 
@@ -167,7 +167,7 @@ export async function getProducts(): Promise<Product[]> {
     const data = await fs.promises.readFile(DB_FILE, "utf-8");
     return JSON.parse(data) as Product[];
   } catch (error) {
-    console.error("Error reading database file", error);
+    console.warn("Error reading database file", error);
     return [];
   }
 }
@@ -184,7 +184,7 @@ export async function getProductById(id: string): Promise<Product | null> {
       if (error) throw error;
       return data ? mapRowToProduct(data) : null;
     } catch (err) {
-      console.error("Supabase getProductById error:", err);
+      console.warn("Supabase getProductById error:", err);
     }
   }
 
@@ -319,7 +319,7 @@ export async function getCategories(): Promise<Category[]> {
       }
       return data as Category[];
     } catch (err) {
-      console.error("Supabase getCategories error, falling back to local file / seeding:", err);
+      console.warn("Supabase getCategories error, falling back to local file / seeding:", err);
       // If table doesn't exist, we can try to seed it (if we have admin key, but here we fallback to JSON)
     }
   }
@@ -330,7 +330,7 @@ export async function getCategories(): Promise<Category[]> {
     const data = await fs.promises.readFile(CAT_FILE, "utf-8");
     return JSON.parse(data) as Category[];
   } catch (error) {
-    console.error("Error reading categories database file", error);
+    console.warn("Error reading categories database file", error);
     return DEFAULT_CATEGORIES;
   }
 }
