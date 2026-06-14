@@ -1,0 +1,10 @@
+[
+  { "id": "Men-Shirts", "gender": "Men", "name": "Shirts" },
+  { "id": "Men-Pants", "gender": "Men", "name": "Pants" },
+  { "id": "Men-Jackets", "gender": "Men", "name": "Jackets" },
+  { "id": "Men-Accessories", "gender": "Men", "name": "Accessories" },
+  { "id": "Women-Tops", "gender": "Women", "name": "Tops" },
+  { "id": "Women-Dresses", "gender": "Women", "name": "Dresses" },
+  { "id": "Women-Bottoms", "gender": "Women", "name": "Bottoms" },
+  { "id": "Women-Accessories", "gender": "Women", "name": "Accessories" }
+]

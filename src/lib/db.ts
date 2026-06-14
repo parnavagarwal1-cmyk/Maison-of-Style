@@ -105,7 +105,6 @@ const SEED_PRODUCTS: Product[] = [
 ];
 
 function ensureDbExists() {
-  if (isSupabaseConfigured) return;
   if (!fs.existsSync(DB_DIR)) {
     fs.mkdirSync(DB_DIR, { recursive: true });
   }
