@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { Product } from "@/lib/types";
+import { Product, Category } from "@/lib/types";
 import ProductCard from "@/components/ProductCard";
 import ProductModal from "@/components/ProductModal";
 
 interface CategoryPageClientProps {
   title: string;
   gender: "Men" | "Women";
-  filterCategories: string[];
+  filterCategories: Category[];
   initialProducts: Product[];
 }
 
@@ -20,19 +20,22 @@ export default function CategoryPageClient({
 }: CategoryPageClientProps) {
   const [activeFilter, setActiveFilter] = useState<string>("All");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Filter products by gender (e.g. "Men-Shirts" starts with "Men-")
   const genderProducts = initialProducts.filter((p) =>
     p.category.startsWith(`${gender}-`)
   );
 
-  // Apply the category tab filter
+  // Apply both category tab and search filters
   const filteredProducts = genderProducts.filter((product) => {
-    if (activeFilter === "All") return true;
+    // Category check (activeFilter is "All" or matches product category code e.g. "Men-Shirts")
+    const matchesCategory = activeFilter === "All" || product.category === activeFilter;
     
-    // Extract actual category part, e.g., "Men-Shirts" -> "Shirts"
-    const catPart = product.category.split("-")[1];
-    return catPart.toLowerCase() === activeFilter.toLowerCase();
+    // Search check (case-insensitive name match)
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return matchesCategory && matchesSearch;
   });
 
   return (
@@ -54,6 +57,23 @@ export default function CategoryPageClient({
           </h1>
         </div>
 
+        {/* Search Bar */}
+        <div className="search-bar-container">
+          <input
+            type="text"
+            className="search-input"
+            placeholder="SEARCH PRODUCTS..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <svg
+            className="search-icon-svg"
+            viewBox="0 0 24 24"
+          >
+            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+          </svg>
+        </div>
+
         {/* Filter Navigation Tabs */}
         <div className="filter-container">
           <button
@@ -64,11 +84,11 @@ export default function CategoryPageClient({
           </button>
           {filterCategories.map((cat) => (
             <button
-              key={cat}
-              onClick={() => setActiveFilter(cat)}
-              className={`filter-tab ${activeFilter === cat ? "active" : ""}`}
+              key={cat.id}
+              onClick={() => setActiveFilter(cat.id)}
+              className={`filter-tab ${activeFilter === cat.id ? "active" : ""}`}
             >
-              {cat}
+              {cat.name}
             </button>
           ))}
         </div>
@@ -80,13 +100,18 @@ export default function CategoryPageClient({
           </p>
         ) : (
           <div className="product-grid">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onClick={() => setSelectedProduct(product)}
-              />
-            ))}
+            {filteredProducts.map((product) => {
+              const catObj = filterCategories.find((c) => c.id === product.category);
+              const categoryLabel = catObj ? catObj.name : undefined;
+              return (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  categoryLabel={categoryLabel}
+                  onClick={() => setSelectedProduct(product)}
+                />
+              );
+            })}
           </div>
         )}
       </section>

@@ -1,10 +1,11 @@
 import fs from "fs";
 import path from "path";
 import { createClient } from "@supabase/supabase-js";
-import { Product } from "./types";
+import { Product, Category } from "./types";
 
 const DB_DIR = path.join(process.cwd(), "data");
 const DB_FILE = path.join(DB_DIR, "products.json");
+const CAT_FILE = path.join(DB_DIR, "categories.json");
 
 // Check if Supabase credentials are provided in the environment
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -14,6 +15,18 @@ const isSupabaseConfigured = !!(supabaseUrl && supabaseKey);
 const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl!, supabaseKey!)
   : null;
+
+// Default categories seed data
+const DEFAULT_CATEGORIES: Category[] = [
+  { id: "Men-Shirts", gender: "Men", name: "Shirts" },
+  { id: "Men-Pants", gender: "Men", name: "Pants" },
+  { id: "Men-Jackets", gender: "Men", name: "Jackets" },
+  { id: "Men-Accessories", gender: "Men", name: "Accessories" },
+  { id: "Women-Tops", gender: "Women", name: "Tops" },
+  { id: "Women-Dresses", gender: "Women", name: "Dresses" },
+  { id: "Women-Bottoms", gender: "Women", name: "Bottoms" },
+  { id: "Women-Accessories", gender: "Women", name: "Accessories" },
+];
 
 // Default seeds (fallback for local JSON file DB)
 const SEED_PRODUCTS: Product[] = [
@@ -99,6 +112,9 @@ function ensureDbExists() {
   if (!fs.existsSync(DB_FILE)) {
     fs.writeFileSync(DB_FILE, JSON.stringify(SEED_PRODUCTS, null, 2), "utf-8");
   }
+  if (!fs.existsSync(CAT_FILE)) {
+    fs.writeFileSync(CAT_FILE, JSON.stringify(DEFAULT_CATEGORIES, null, 2), "utf-8");
+  }
 }
 
 // Map database row to project Product type
@@ -125,6 +141,10 @@ function mapProductToRow(product: Omit<Product, "id" | "createdAt"> & { id?: str
     created_at: product.createdAt || Date.now(),
   };
 }
+
+/* ==========================================================================
+   Product CRUD Operations
+   ========================================================================== */
 
 export async function getProducts(): Promise<Product[]> {
   if (isSupabaseConfigured && supabase) {
@@ -277,6 +297,76 @@ export async function deleteProduct(id: string): Promise<boolean> {
   } catch (err) {
     console.error("Local JSON deleteProduct error (expected on read-only systems like Vercel without Supabase):", err);
     throw new Error("Local database delete failed. If deployed on Vercel, please configure SUPABASE_URL and SUPABASE_KEY environment variables.");
+  }
+}
+
+/* ==========================================================================
+   Category (Catalog) CRUD Operations
+   ========================================================================== */
+
+export async function getCategories(): Promise<Category[]> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      // Fetch categories from Supabase
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .order("id");
+
+      if (error) {
+        // If categories table doesn't exist, we fallback or try to seed it
+        throw error;
+      }
+      return data as Category[];
+    } catch (err) {
+      console.error("Supabase getCategories error, falling back to local file / seeding:", err);
+      // If table doesn't exist, we can try to seed it (if we have admin key, but here we fallback to JSON)
+    }
+  }
+
+  // Fallback to local JSON
+  ensureDbExists();
+  try {
+    const data = await fs.promises.readFile(CAT_FILE, "utf-8");
+    return JSON.parse(data) as Category[];
+  } catch (error) {
+    console.error("Error reading categories database file", error);
+    return DEFAULT_CATEGORIES;
+  }
+}
+
+export async function updateCategory(id: string, newName: string): Promise<Category | null> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("categories")
+        .update({ name: newName })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Category;
+    } catch (err) {
+      console.error("Supabase updateCategory error:", err);
+      // If error occurs (like table doesn't exist), throw to warn the user
+      throw err;
+    }
+  }
+
+  // Local JSON write
+  try {
+    ensureDbExists();
+    const categories = await getCategories();
+    const index = categories.findIndex((c) => c.id === id);
+    if (index === -1) return null;
+
+    categories[index].name = newName;
+    await fs.promises.writeFile(CAT_FILE, JSON.stringify(categories, null, 2), "utf-8");
+    return categories[index];
+  } catch (err) {
+    console.error("Local JSON updateCategory error:", err);
+    throw new Error("Local database update failed. If deployed on Vercel, please configure SUPABASE_URL and SUPABASE_KEY environment variables.");
   }
 }
 

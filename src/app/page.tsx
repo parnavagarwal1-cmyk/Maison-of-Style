@@ -1,11 +1,14 @@
 import Link from "next/link";
-import { getProducts } from "@/lib/db";
+import { getProducts, getCategories } from "@/lib/db";
 import FeaturedGridClient from "@/components/FeaturedGridClient";
 
 export const revalidate = 0; // Disable caching to fetch live products in dev / admin changes
 
 export default async function HomePage() {
-  const allProducts = await getProducts();
+  const [allProducts, categories] = await Promise.all([
+    getProducts(),
+    getCategories(),
+  ]);
   
   // Latest 8 products sorted by createdAt desc
   const featuredProducts = [...allProducts]
@@ -72,7 +75,7 @@ export default async function HomePage() {
             No products found. Please add products via the admin panel.
           </p>
         ) : (
-          <FeaturedGridClient products={featuredProducts} />
+          <FeaturedGridClient products={featuredProducts} categories={categories} />
         )}
       </section>
     </div>

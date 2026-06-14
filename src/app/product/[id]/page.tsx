@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getProductById } from "@/lib/db";
+import { getProductById, getCategories } from "@/lib/db";
 import { parseAffiliateLinks } from "@/lib/types";
 
 export const revalidate = 0;
@@ -43,13 +43,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProductDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const product = await getProductById(id);
+  const [product, categories] = await Promise.all([
+    getProductById(id),
+    getCategories(),
+  ]);
 
   if (!product) {
     notFound();
   }
 
   const links = parseAffiliateLinks(product.affiliateLink);
+  const catObj = categories.find((c) => c.id === product.category);
+  const categoryLabel = catObj ? catObj.name : product.category.replace("-", " ");
 
   return (
     <div style={{ minHeight: "80vh", display: "flex", alignItems: "center" }}>
@@ -69,7 +74,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
           {/* Right: Product Details */}
           <div className="product-detail-info">
             <span className="product-detail-cat">
-              {product.category.replace("-", " ")}
+              {categoryLabel}
             </span>
             <h1 className="product-detail-title">{product.name}</h1>
             <p className="product-detail-desc">

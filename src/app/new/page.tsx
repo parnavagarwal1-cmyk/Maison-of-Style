@@ -1,10 +1,14 @@
-import { getProducts } from "@/lib/db";
+import { getProducts, getCategories } from "@/lib/db";
 import FeaturedGridClient from "@/components/FeaturedGridClient";
 
 export const revalidate = 0;
 
 export default async function NewArrivalsPage() {
-  const products = await getProducts();
+  const [products, categories] = await Promise.all([
+    getProducts(),
+    getCategories(),
+  ]);
+
   const newArrivals = products.filter((p) => p.newArrival);
 
   return (
@@ -34,7 +38,7 @@ export default async function NewArrivalsPage() {
             No new arrivals found.
           </p>
         ) : (
-          <FeaturedGridClient products={newArrivals} />
+          <FeaturedGridClient products={newArrivals} categories={categories} />
         )}
       </section>
     </div>

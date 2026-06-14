@@ -1,5 +1,5 @@
 import { isAuthenticated } from "@/lib/auth";
-import { getProducts, getStats } from "@/lib/db";
+import { getProducts, getStats, getCategories } from "@/lib/db";
 import AdminLogin from "@/components/AdminLogin";
 import AdminDashboard from "@/components/AdminDashboard";
 
@@ -13,8 +13,11 @@ export default async function AdminPage() {
   }
 
   // Fetch initial data on the server
-  const products = await getProducts();
-  const stats = await getStats();
+  const [products, stats, categories] = await Promise.all([
+    getProducts(),
+    getStats(),
+    getCategories(),
+  ]);
   
   // Sort products newest first for admin dashboard list
   const sortedProducts = [...products].sort((a, b) => b.createdAt - a.createdAt);
@@ -23,6 +26,7 @@ export default async function AdminPage() {
     <AdminDashboard
       initialProducts={sortedProducts}
       initialStats={stats}
+      initialCategories={categories}
     />
   );
 }

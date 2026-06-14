@@ -3,10 +3,13 @@ import { Product } from "@/lib/types";
 
 interface ProductCardProps {
   product: Product;
+  categoryLabel?: string;
   onClick?: () => void;
 }
 
-export default function ProductCard({ product, onClick }: ProductCardProps) {
+export default function ProductCard({ product, categoryLabel, onClick }: ProductCardProps) {
+  const displayCategory = categoryLabel || product.category.replace("-", " ");
+
   // If onClick is provided, it behaves like an interactive card that opens a modal
   if (onClick) {
     return (
@@ -37,7 +40,7 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
         <div className="product-card-info">
           <h3 className="product-card-name">{product.name}</h3>
           <span className="product-card-category">
-            {product.category.replace("-", " ")}
+            {displayCategory}
           </span>
         </div>
       </div>
@@ -66,7 +69,7 @@ export default function ProductCard({ product, onClick }: ProductCardProps) {
       <div className="product-card-info">
         <h3 className="product-card-name">{product.name}</h3>
         <span className="product-card-category">
-          {product.category.replace("-", " ")}
+          {displayCategory}
         </span>
       </div>
     </a>

@@ -8,6 +8,12 @@ export interface Product {
   createdAt: number;
 }
 
+export interface Category {
+  id: string; // e.g. "Men-Shirts"
+  gender: "Men" | "Women";
+  name: string; // e.g. "Shirts" (editable!)
+}
+
 export interface AffiliateLinkItem {
   label: string;
   url: string;
