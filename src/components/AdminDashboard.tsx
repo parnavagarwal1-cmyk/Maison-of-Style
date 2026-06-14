@@ -48,6 +48,10 @@ export default function AdminDashboard({
   const [categorySuccess, setCategorySuccess] = useState("");
   const [categorySubmitting, setCategorySubmitting] = useState(false);
 
+  // Add Category State
+  const [newCatName, setNewCatName] = useState("");
+  const [newCatGender, setNewCatGender] = useState<"Men" | "Women">("Men");
+
   const handleLogout = async () => {
     try {
       await fetch("/api/admin/logout", { method: "POST" });
@@ -229,6 +233,42 @@ export default function AdminDashboard({
         categories.map((c) => (c.id === catId ? data.category : c))
       );
       cancelEditCategory();
+    } catch (err: any) {
+      setCategoryError(err.message || "Something went wrong");
+    } finally {
+      setCategorySubmitting(false);
+    }
+  };
+
+  const handleAddCategorySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCatName.trim()) {
+      setCategoryError("Category name cannot be empty");
+      return;
+    }
+
+    setCategorySubmitting(true);
+    setCategoryError("");
+    setCategorySuccess("");
+
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newCatName,
+          gender: newCatGender,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to add category");
+      }
+
+      setCategorySuccess(`Category "${data.category.name}" added successfully.`);
+      setCategories([...categories, data.category]);
+      setNewCatName("");
     } catch (err: any) {
       setCategoryError(err.message || "Something went wrong");
     } finally {
@@ -511,21 +551,65 @@ export default function AdminDashboard({
           </>
         ) : (
           /* Categories management layout */
-          <div className="admin-table-panel" style={{ maxWidth: "800px", margin: "0 auto" }}>
-            <h2 className="admin-panel-title">Catalog Categories</h2>
-            <p style={{ color: "var(--text-secondary)", fontSize: "13px", marginBottom: "24px", lineHeight: "1.5" }}>
-              Edit the display names for catalog categories below. These names will dynamically update filters, product grids, and details pages.
-            </p>
-            {categorySuccess && (
-              <p style={{ color: "#ffffff", fontSize: "12px", marginBottom: "16px", padding: "8px 12px", backgroundColor: "#2e7d32" }}>
-                {categorySuccess}
+          <div style={{ maxWidth: "800px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "32px" }}>
+            {/* Add Category Panel */}
+            <div className="admin-form-panel" style={{ width: "100%" }}>
+              <h2 className="admin-panel-title">Add New Catalog Category</h2>
+              <form onSubmit={handleAddCategorySubmit} style={{ display: "flex", gap: "16px", alignItems: "flex-end", flexWrap: "wrap" }}>
+                <div className="form-group" style={{ margin: 0, flex: 1, minWidth: "120px" }}>
+                  <label className="form-label" htmlFor="new-cat-gender">Gender</label>
+                  <select
+                    id="new-cat-gender"
+                    className="form-input"
+                    value={newCatGender}
+                    onChange={(e) => setNewCatGender(e.target.value as "Men" | "Women")}
+                    disabled={categorySubmitting}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <option value="Men">Men</option>
+                    <option value="Women">Women</option>
+                  </select>
+                </div>
+                <div className="form-group" style={{ margin: 0, flex: 2, minWidth: "200px" }}>
+                  <label className="form-label" htmlFor="new-cat-name">Category Name</label>
+                  <input
+                    id="new-cat-name"
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. Shoes, Swimwear, Skirts"
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    required
+                    disabled={categorySubmitting}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="btn-editorial"
+                  style={{ padding: "12px 24px", height: "46px" }}
+                  disabled={categorySubmitting}
+                >
+                  Add Category
+                </button>
+              </form>
+            </div>
+
+            {/* Catalog Categories List Table */}
+            <div className="admin-table-panel" style={{ width: "100%" }}>
+              <h2 className="admin-panel-title">Catalog Categories</h2>
+              <p style={{ color: "var(--text-secondary)", fontSize: "13px", marginBottom: "24px", lineHeight: "1.5" }}>
+                Edit the display names for catalog categories below. These names will dynamically update filters, product grids, and details pages.
               </p>
-            )}
-            {categoryError && (
-              <p className="form-error" style={{ marginBottom: "16px" }}>
-                {categoryError}
-              </p>
-            )}
+              {categorySuccess && (
+                <p style={{ color: "#ffffff", fontSize: "12px", marginBottom: "16px", padding: "8px 12px", backgroundColor: "#2e7d32" }}>
+                  {categorySuccess}
+                </p>
+              )}
+              {categoryError && (
+                <p className="form-error" style={{ marginBottom: "16px" }}>
+                  {categoryError}
+                </p>
+              )}
 
             <table className="admin-table">
               <thead>
@@ -594,7 +678,8 @@ export default function AdminDashboard({
               </tbody>
             </table>
           </div>
-        )}
+        </div>
+      )}
       </div>
 
       {/* Custom Delete Confirmation Modal */}

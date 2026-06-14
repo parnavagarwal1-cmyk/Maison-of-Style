@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAuthenticated } from "@/lib/auth";
-import { getCategories, updateCategory } from "@/lib/db";
+import { getCategories, updateCategory, addCategory } from "@/lib/db";
 
 export async function GET() {
   const isAuth = await isAuthenticated();
@@ -13,6 +13,37 @@ export async function GET() {
     return NextResponse.json({ categories });
   } catch (error: any) {
     console.error("GET categories admin API error:", error);
+    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  const isAuth = await isAuthenticated();
+  if (!isAuth) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const { name, gender } = await request.json();
+
+    if (!name || !gender) {
+      return NextResponse.json(
+        { error: "Category Name and Gender are required." },
+        { status: 400 }
+      );
+    }
+
+    if (gender !== "Men" && gender !== "Women") {
+      return NextResponse.json(
+        { error: "Gender must be 'Men' or 'Women'." },
+        { status: 400 }
+      );
+    }
+
+    const newCategory = await addCategory({ gender, name: name.trim() });
+    return NextResponse.json({ success: true, category: newCategory });
+  } catch (error: any) {
+    console.error("POST categories admin API error:", error);
     return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
   }
 }

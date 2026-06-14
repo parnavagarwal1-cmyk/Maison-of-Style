@@ -365,8 +365,56 @@ export async function updateCategory(id: string, newName: string): Promise<Categ
     await fs.promises.writeFile(CAT_FILE, JSON.stringify(categories, null, 2), "utf-8");
     return categories[index];
   } catch (err) {
-    console.error("Local JSON updateCategory error:", err);
+    console.warn("Local JSON updateCategory error:", err);
     throw new Error("Local database update failed. If deployed on Vercel, please configure SUPABASE_URL and SUPABASE_KEY environment variables.");
+  }
+}
+
+export async function addCategory(categoryData: { gender: "Men" | "Women"; name: string }): Promise<Category> {
+  const cleanName = categoryData.name.trim();
+  const safeName = cleanName.replace(/[^a-zA-Z0-9]/g, "");
+  if (!safeName) {
+    throw new Error("Invalid category name.");
+  }
+  const id = `${categoryData.gender}-${safeName}`;
+
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("categories")
+        .insert([{ id, gender: categoryData.gender, name: cleanName }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Category;
+    } catch (err) {
+      console.warn("Supabase addCategory error:", err);
+      throw err;
+    }
+  }
+
+  // Local JSON fallback
+  try {
+    ensureDbExists();
+    const categories = await getCategories();
+    
+    // Check for duplicate id
+    if (categories.some((c) => c.id === id)) {
+      throw new Error("Category already exists.");
+    }
+
+    const newCategory: Category = {
+      id,
+      gender: categoryData.gender,
+      name: cleanName,
+    };
+    categories.push(newCategory);
+    await fs.promises.writeFile(CAT_FILE, JSON.stringify(categories, null, 2), "utf-8");
+    return newCategory;
+  } catch (err: any) {
+    console.warn("Local JSON addCategory error:", err);
+    throw new Error(err.message || "Local database write failed.");
   }
 }
 
